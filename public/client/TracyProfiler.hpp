@@ -97,6 +97,7 @@ struct SourceLocationData
     const char* file;
     uint32_t line;
     uint32_t color;
+    uint8_t togglable;
 };
 
 #ifdef TRACY_ON_DEMAND
@@ -755,6 +756,8 @@ public:
         return uint64_t( ptr );
     }
 
+    void SendSourceLocation( uint64_t ptr );
+
 private:
     enum class DequeueStatus { DataDequeued, ConnectionLost, QueueEmpty };
     enum class ThreadCtxStatus { Same, Changed, ConnectionLost };
@@ -807,7 +810,6 @@ private:
 
     bool SendData( const char* data, size_t len );
     void SendLongString( uint64_t ptr, const char* str, size_t len, QueueType type );
-    void SendSourceLocation( uint64_t ptr );
     void SendSourceLocationPayload( uint64_t ptr );
     void SendCallstackPayload( uint64_t ptr );
     void SendCallstackPayload64( uint64_t ptr );

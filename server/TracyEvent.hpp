@@ -189,6 +189,7 @@ struct SourceLocationBase
     StringRef file;
     uint32_t line;
     uint32_t color;
+    bool togglable;
 };
 
 struct SourceLocation : public SourceLocationBase

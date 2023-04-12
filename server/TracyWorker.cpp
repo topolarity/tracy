@@ -3663,7 +3663,9 @@ void Worker::AddSourceLocation( const QueueSourceLocation& srcloc )
     }
     CheckString( srcloc.function );
     const uint32_t color = ( srcloc.b << 16 ) | ( srcloc.g << 8 ) | srcloc.r;
-    it->second = SourceLocation {{ srcloc.name == 0 ? StringRef() : StringRef( StringRef::Ptr, srcloc.name ), StringRef( StringRef::Ptr, srcloc.function ), StringRef( StringRef::Ptr, srcloc.file ), srcloc.line, color }};
+    const bool togglable = srcloc.line >= INT32_MAX;
+    const uint32_t line = (togglable) ? (srcloc.line - INT32_MAX) : srcloc.line;
+    it->second = SourceLocation {{ srcloc.name == 0 ? StringRef() : StringRef( StringRef::Ptr, srcloc.name ), StringRef( StringRef::Ptr, srcloc.function ), StringRef( StringRef::Ptr, srcloc.file ), line, color, togglable}};
 }
 
 void Worker::AddSourceLocationPayload( uint64_t ptr, const char* data, size_t sz )
