@@ -3248,6 +3248,9 @@ bool Worker::DispatchProcess( const QueueItem& ev, const char*& ptr )
                 HandlePlotName( ev.stringTransfer.ptr, ptr, sz );
                 m_serverQuerySpaceLeft++;
                 break;
+            case QueueType::AnnouncedSourceLocationPayload:
+                AddAnnouncedSourceLocationPayload( ev.stringTransfer.ptr, ptr, sz );
+                break;
             case QueueType::SourceLocationPayload:
                 AddSourceLocationPayload( ev.stringTransfer.ptr, ptr, sz );
                 break;

@@ -740,7 +740,7 @@ public:
     {
         size_t sourceSz = strlen( srcloc->file );
         size_t functionSz = strlen( srcloc->function );
-        size_t nameSz = strlen( srcloc->name );
+        size_t nameSz = srcloc->name ? strlen( srcloc->name ) : 0;
         const auto sz32 = uint32_t( 2 + 8 + 4 + 4 + functionSz + 1 + sourceSz + 1 + nameSz );
         assert( sz32 <= std::numeric_limits<uint16_t>::max() );
         const auto sz = uint16_t( sz32 );
@@ -750,9 +750,9 @@ public:
         memcpy( ptr + 10, &srcloc->color, 4 );
         memcpy( ptr + 14, &srcloc->line, 4 );
         memcpy( ptr + 18, srcloc->function, functionSz );
-        ptr[10 + functionSz] = '\0';
+        ptr[18 + functionSz] = '\0';
         memcpy( ptr + 18 + functionSz + 1, srcloc->file, sourceSz );
-        ptr[10 + functionSz + 1 + sourceSz] = '\0';
+        ptr[18 + functionSz + 1 + sourceSz] = '\0';
         if( nameSz != 0 )
         {
             memcpy( ptr + 18 + functionSz + 1 + sourceSz + 1, srcloc->name, nameSz );
