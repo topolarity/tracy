@@ -16,6 +16,7 @@ enum class QueueType : uint8_t
     MessageCallstack,
     MessageColorCallstack,
     MessageAppInfo,
+    AnnounceSrcLoc,
     ZoneBeginAllocSrcLoc,
     ZoneBeginAllocSrcLocCallstack,
     CallstackSerial,
@@ -110,6 +111,7 @@ enum class QueueType : uint8_t
     StringData,
     ThreadName,
     PlotName,
+    AnnouncedSourceLocationPayload,
     SourceLocationPayload,
     CallstackPayload,
     CallstackAllocPayload,
@@ -794,6 +796,7 @@ static constexpr size_t QueueDataSize[] = {
     sizeof( QueueHeader ) + sizeof( QueueMemFree ),         // callstack, named
     sizeof( QueueHeader ) + sizeof( QueueGpuZoneBegin ),
     sizeof( QueueHeader ) + sizeof( QueueGpuZoneBegin ),    // callstack
+    sizeof( QueueHeader ) + sizeof( QueueGpuZoneBeginLean ),// announce source location
     sizeof( QueueHeader ) + sizeof( QueueGpuZoneBeginLean ),// allocated source location
     sizeof( QueueHeader ) + sizeof( QueueGpuZoneBeginLean ),// allocated source location, callstack
     sizeof( QueueHeader ) + sizeof( QueueGpuZoneEnd ),
@@ -862,6 +865,7 @@ static constexpr size_t QueueDataSize[] = {
     sizeof( QueueHeader ) + sizeof( QueueStringTransfer ),  // string data
     sizeof( QueueHeader ) + sizeof( QueueStringTransfer ),  // thread name
     sizeof( QueueHeader ) + sizeof( QueueStringTransfer ),  // plot name
+    sizeof( QueueHeader ) + sizeof( QueueStringTransfer ),  // announced source location payload
     sizeof( QueueHeader ) + sizeof( QueueStringTransfer ),  // allocated source location payload
     sizeof( QueueHeader ) + sizeof( QueueStringTransfer ),  // callstack payload
     sizeof( QueueHeader ) + sizeof( QueueStringTransfer ),  // callstack alloc payload

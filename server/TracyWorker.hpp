@@ -296,9 +296,12 @@ private:
         unordered_flat_map<uint64_t, const char*> threadNames;
         unordered_flat_map<uint64_t, std::pair<const char*, const char*>> externalNames;
 
+        // This is a map from uint64_t -> SourceLocation
         unordered_flat_map<uint64_t, SourceLocation> sourceLocation;
+        //Vector<SourceLocation> togglableSourceLocation;
         Vector<short_ptr<SourceLocation>> sourceLocationPayload;
         unordered_flat_map<const SourceLocation*, int16_t, SourceLocationHasher, SourceLocationComparator> sourceLocationPayloadMap;
+        // This is a collection of uint64_t
         Vector<uint64_t> sourceLocationExpand;
 #ifndef TRACY_NO_STATISTICS
         unordered_flat_map<int16_t, SourceLocationZones> sourceLocationZones;
@@ -679,6 +682,7 @@ private:
     tracy_force_inline void ProcessThreadContext( const QueueThreadContext& ev );
     tracy_force_inline void ProcessZoneBegin( const QueueZoneBegin& ev );
     tracy_force_inline void ProcessZoneBeginCallstack( const QueueZoneBegin& ev );
+    tracy_force_inline void ProcessAnnounceSrcLoc( const QueueZoneBeginLean& ev );
     tracy_force_inline void ProcessZoneBeginAllocSrcLoc( const QueueZoneBeginLean& ev );
     tracy_force_inline void ProcessZoneBeginAllocSrcLocCallstack( const QueueZoneBeginLean& ev );
     tracy_force_inline void ProcessZoneEnd( const QueueZoneEnd& ev );
@@ -859,6 +863,7 @@ private:
 
     void AddSourceLocation( const QueueSourceLocation& srcloc );
     void AddSourceLocationPayload( uint64_t ptr, const char* data, size_t sz );
+    void AddAnnouncedSourceLocationPayload( uint64_t ptr, const char* data, size_t sz );
 
     void AddString( uint64_t ptr, const char* str, size_t sz );
     void AddThreadString( uint64_t id, const char* str, size_t sz );
@@ -985,6 +990,7 @@ private:
     short_ptr<GpuCtxData> m_gpuCtxMap[256];
     uint32_t m_pendingCallstackId = 0;
     int16_t m_pendingSourceLocationPayload = 0;
+    int16_t m_pendingAnnouncedSourceLocationPayload = 0;
     Vector<uint64_t> m_sourceLocationQueue;
     unordered_flat_map<uint64_t, int16_t> m_sourceLocationShrink;
     unordered_flat_map<uint64_t, ThreadData*> m_threadMap;

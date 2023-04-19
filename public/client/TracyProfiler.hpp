@@ -736,6 +736,30 @@ public:
         return AllocSourceLocation( line, source, sourceSz, function, functionSz, nullptr, 0 );
     }
 
+    static tracy_force_inline uint64_t AnnounceSourceLocation(struct SourceLocationData *srcloc)
+    {
+        size_t sourceSz = strlen( srcloc->file );
+        size_t functionSz = strlen( srcloc->function );
+        size_t nameSz = strlen( srcloc->name );
+        const auto sz32 = uint32_t( 2 + 8 + 4 + 4 + functionSz + 1 + sourceSz + 1 + nameSz );
+        assert( sz32 <= std::numeric_limits<uint16_t>::max() );
+        const auto sz = uint16_t( sz32 );
+        auto ptr = (char*)tracy_malloc( sz );
+        memcpy( ptr, &sz, 2 );
+        memcpy( ptr + 2, &srcloc, 8);
+        memcpy( ptr + 10, &srcloc->color, 4 );
+        memcpy( ptr + 14, &srcloc->line, 4 );
+        memcpy( ptr + 18, srcloc->function, functionSz );
+        ptr[10 + functionSz] = '\0';
+        memcpy( ptr + 18 + functionSz + 1, srcloc->file, sourceSz );
+        ptr[10 + functionSz + 1 + sourceSz] = '\0';
+        if( nameSz != 0 )
+        {
+            memcpy( ptr + 18 + functionSz + 1 + sourceSz + 1, srcloc->name, nameSz );
+        }
+        return uint64_t( ptr );
+    }
+
     static tracy_force_inline uint64_t AllocSourceLocation( uint32_t line, const char* source, size_t sourceSz, const char* function, size_t functionSz, const char* name, size_t nameSz )
     {
         const auto sz32 = uint32_t( 2 + 4 + 4 + functionSz + 1 + sourceSz + 1 + nameSz );
@@ -810,6 +834,7 @@ private:
 
     bool SendData( const char* data, size_t len );
     void SendLongString( uint64_t ptr, const char* str, size_t len, QueueType type );
+    void SendAnnouncedSourceLocationPayload( uint64_t ptr );
     void SendSourceLocationPayload( uint64_t ptr );
     void SendCallstackPayload( uint64_t ptr );
     void SendCallstackPayload64( uint64_t ptr );

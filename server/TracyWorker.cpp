@@ -3663,13 +3663,82 @@ void Worker::AddSourceLocation( const QueueSourceLocation& srcloc )
     }
     CheckString( srcloc.function );
     const uint32_t color = ( srcloc.b << 16 ) | ( srcloc.g << 8 ) | srcloc.r;
-    const bool togglable = srcloc.line >= INT32_MAX;
-    const uint32_t line = (togglable) ? (srcloc.line - INT32_MAX) : srcloc.line;
-    it->second = SourceLocation {{ srcloc.name == 0 ? StringRef() : StringRef( StringRef::Ptr, srcloc.name ), StringRef( StringRef::Ptr, srcloc.function ), StringRef( StringRef::Ptr, srcloc.file ), line, color, togglable}};
+    it->second = SourceLocation {{ srcloc.name == 0 ? StringRef() : StringRef( StringRef::Ptr, srcloc.name ), StringRef( StringRef::Ptr, srcloc.function ), StringRef( StringRef::Ptr, srcloc.file ), srcloc.line, color }};
+}
+
+void Worker::AddAnnouncedSourceLocationPayload( uint64_t ptr, const char* data, size_t sz )
+{
+    /**
+     * We could use source location payload instead...
+     **/
+    const auto start = data;
+
+    assert( m_pendingAnnouncedSourceLocationPayload == 0 );
+
+    uint64_t client_ptr;
+    uint32_t color, line;
+    memcpy( &client_ptr, data, 8 );
+    memcpy( &color, data + 8, 4 );
+    memcpy( &line, data + 12, 4 );
+    data += 16;
+    auto end = data;
+
+    while( *end ) end++;
+    const auto func = StoreString( data, end - data );
+    end++;
+
+    data = end;
+    while( *end ) end++;
+    const auto source = StoreString( data, end - data );
+    end++;
+
+    const auto nsz = sz - ( end - start );
+
+    color = ( ( color & 0x00FF0000 ) >> 16 ) |
+            ( ( color & 0x0000FF00 )       ) |
+            ( ( color & 0x000000FF ) << 16 );
+
+    SourceLocation srcloc {{ nsz == 0 ? StringRef() : StringRef( StringRef::Idx, StoreString( end, nsz ).idx ), StringRef( StringRef::Idx, func.idx ), StringRef( StringRef::Idx, source.idx ), line, color }};
+    fprintf(stderr, "registered srcloc for %s:%d\n", GetString(srcloc.file), srcloc.line);
+    m_pendingAnnouncedSourceLocationPayload = -1;
+    /**
+     * TODO: Actually register into map
+     **/
+    //auto it = m_data.sourceLocationPayloadMap.find( &srcloc );
+    //if( it == m_data.sourceLocationPayloadMap.end() )
+    //{
+        //auto slptr = m_slab.Alloc<SourceLocation>();
+        //memcpy( slptr, &srcloc, sizeof( srcloc ) );
+        //uint32_t idx = m_data.sourceLocationPayload.size();
+        //m_data.sourceLocationPayloadMap.emplace( slptr, idx );
+        //m_pendingAnnouncedSourceLocationPayload = -int16_t( idx + 1 );
+        //m_data.sourceLocationPayload.push_back( slptr );
+        //if( m_checkedFileStrings.find( srcloc.file ) == m_checkedFileStrings.end() )
+        //{
+            //CacheSource( srcloc.file );
+        //}
+        //const auto key = -int16_t( idx + 1 );
+//#ifndef TRACY_NO_STATISTICS
+        //auto res = m_data.sourceLocationZones.emplace( key, SourceLocationZones() );
+        //m_data.srclocZonesLast.first = key;
+        //m_data.srclocZonesLast.second = &res.first->second;
+//#else
+        //auto res = m_data.sourceLocationZonesCnt.emplace( key, 0 );
+        //m_data.srclocCntLast.first = key;
+        //m_data.srclocCntLast.second = &res.first->second;
+//#endif
+    //}
+    //else
+    //{
+        //m_pendingAnnouncedSourceLocationPayload = -int16_t( it->second + 1 );
+    //}
 }
 
 void Worker::AddSourceLocationPayload( uint64_t ptr, const char* data, size_t sz )
 {
+    /**
+     * We could use source location payload instead...
+     **/
     const auto start = data;
 
     assert( m_pendingSourceLocationPayload == 0 );
@@ -4448,6 +4517,9 @@ bool Worker::Process( const QueueItem& ev )
     case QueueType::ZoneBeginCallstack:
         ProcessZoneBeginCallstack( ev.zoneBegin );
         break;
+    case QueueType::AnnounceSrcLoc:
+        ProcessAnnounceSrcLoc( ev.zoneBeginLean );
+        break;
     case QueueType::ZoneBeginAllocSrcLoc:
         ProcessZoneBeginAllocSrcLoc( ev.zoneBeginLean );
         break;
@@ -4810,6 +4882,26 @@ void Worker::ProcessZoneBeginCallstack( const QueueZoneBegin& ev )
     auto& extra = RequestZoneExtra( *zone );
     extra.callstack.SetVal( it->second );
     it->second = 0;
+}
+
+void Worker::ProcessAnnounceSrcLoc( const QueueZoneBeginLean& ev )
+{
+    assert( m_pendingAnnouncedSourceLocationPayload != 0 );
+
+    /**
+     * TODO: use that payload
+     **/
+
+    //const auto start = TscTime( RefTime( m_refTimeThread, ev.time ) );
+    //zone->SetStartSrcLoc( start, m_pendingSourceLocationPayload );
+    //zone->SetEnd( -1 );
+    //zone->SetChild( -1 );
+
+    //if( m_data.lastTime < start ) m_data.lastTime = start;
+
+    //NewZone( zone );
+
+    m_pendingAnnouncedSourceLocationPayload = 0;
 }
 
 void Worker::ProcessZoneBeginAllocSrcLoc( const QueueZoneBeginLean& ev )

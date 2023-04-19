@@ -181,6 +181,15 @@ private:
 
 struct Int48Sort { bool operator()( const Int48& lhs, const Int48& rhs ) { return lhs.Val() < rhs.Val(); }; };
 
+/**
+ * What I want is a list of source locations which can then be toggled
+ *
+ *  -> For that, I need to be able to filter "private" source locations
+ *     which might have a custom name, for example.
+ *
+ *  -> I also need a way to send source locations on-demand and make
+ *     sure they get deferred on the client side.
+ **/
 
 struct SourceLocationBase
 {
@@ -189,7 +198,6 @@ struct SourceLocationBase
     StringRef file;
     uint32_t line;
     uint32_t color;
-    bool togglable;
 };
 
 struct SourceLocation : public SourceLocationBase

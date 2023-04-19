@@ -2125,6 +2125,7 @@ static void FreeAssociatedMemory( const QueueItem& item )
         ptr = MemRead<uint64_t>( &item.messageFat.text );
         tracy_free( (void*)ptr );
         break;
+    case QueueType::AnnounceSrcLoc:
     case QueueType::ZoneBeginAllocSrcLoc:
     case QueueType::ZoneBeginAllocSrcLocCallstack:
         ptr = MemRead<uint64_t>( &item.zoneBegin.srcloc );
@@ -2307,6 +2308,17 @@ Profiler::DequeueStatus Profiler::Dequeue( moodycamel::ConsumerToken& token )
                         tracy_free_fast( (void*)ptr );
 #endif
                         break;
+                    case QueueType::AnnounceSrcLoc:
+                    {
+                        int64_t t = MemRead<int64_t>( &item->zoneBegin.time );
+                        int64_t dt = t - refThread;
+                        refThread = t;
+                        MemWrite( &item->zoneBegin.time, dt );
+                        ptr = MemRead<uint64_t>( &item->zoneBegin.srcloc );
+                        SendAnnouncedSourceLocationPayload( ptr );
+                        tracy_free_fast( (void*)ptr );
+                        break;
+                    }
                     case QueueType::ZoneBeginAllocSrcLoc:
                     case QueueType::ZoneBeginAllocSrcLocCallstack:
                     {
@@ -2772,6 +2784,18 @@ Profiler::DequeueStatus Profiler::DequeueSerial()
                     MemWrite( &item->zoneBegin.time, dt );
                     break;
                 }
+                case QueueType::AnnounceSrcLoc:
+                {
+                    ThreadCtxCheckSerial( zoneBeginThread );
+                    int64_t t = MemRead<int64_t>( &item->zoneBegin.time );
+                    int64_t dt = t - refThread;
+                    refThread = t;
+                    MemWrite( &item->zoneBegin.time, dt );
+                    ptr = MemRead<uint64_t>( &item->zoneBegin.srcloc );
+                    SendAnnouncedSourceLocationPayload( ptr );
+                    tracy_free_fast( (void*)ptr );
+                    break;
+                }
                 case QueueType::ZoneBeginAllocSrcLoc:
                 case QueueType::ZoneBeginAllocSrcLocCallstack:
                 {
@@ -3055,6 +3079,27 @@ void Profiler::SendSourceLocation( uint64_t ptr )
         MemWrite( &item.srcloc.line, srcloc->line );
     }
     AppendData( &item, QueueDataSize[(int)QueueType::SourceLocation] );
+}
+
+void Profiler::SendAnnouncedSourceLocationPayload( uint64_t _ptr )
+{
+    auto ptr = (const char*)_ptr;
+
+    QueueItem item;
+    MemWrite( &item.hdr.type, QueueType::AnnouncedSourceLocationPayload );
+    MemWrite( &item.stringTransfer.ptr, _ptr );
+
+    uint16_t len;
+    memcpy( &len, ptr, sizeof( len ) );
+    assert( len > 2 );
+    len -= 2;
+    ptr += 2;
+
+    NeedDataSize( QueueDataSize[(int)QueueType::SourceLocationPayload] + sizeof( len ) + len );
+
+    AppendDataUnsafe( &item, QueueDataSize[(int)QueueType::SourceLocationPayload] );
+    AppendDataUnsafe( &len, sizeof( len ) );
+    AppendDataUnsafe( ptr, len );
 }
 
 void Profiler::SendSourceLocationPayload( uint64_t _ptr )
@@ -3945,7 +3990,11 @@ extern "C" {
 
 TRACY_API void ___tracy_send_srcloc( const struct ___tracy_source_location_data* srcloc )
 {
-    tracy::GetProfiler().SendSourceLocation( (uint64_t) srcloc );
+    uint64_t serialized_data = tracy::Profiler::AnnounceSourceLocation((tracy::SourceLocationData *)srcloc);
+    TracyQueuePrepareC( tracy::QueueType::AnnounceSrcLoc );
+    tracy::MemWrite( &item->zoneBegin.time, tracy::Profiler::GetTime() );
+    tracy::MemWrite( &item->zoneBegin.srcloc, serialized_data );
+    TracyQueueCommitC( zoneBeginThread );
 }
 
 TRACY_API TracyCZoneCtx ___tracy_emit_zone_begin( const struct ___tracy_source_location_data* srcloc, int active )
