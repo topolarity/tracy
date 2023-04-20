@@ -3394,6 +3394,8 @@ bool Profiler::HandleServerQuery()
     memcpy( &type, &payload.type, sizeof( payload.type ) );
     memcpy( &ptr, &payload.ptr, sizeof( payload.ptr ) );
 
+    auto& srcloc = *(tracy::AnnouncedSourceLocationData*)ptr;
+
     switch( type )
     {
     case ServerQueryString:
@@ -3459,6 +3461,9 @@ bool Profiler::HandleServerQuery()
         memcpy( m_queryDataPtr+8, &payload.extra, 4 );
         m_queryDataPtr += 12;
         AckServerQuery();
+        break;
+    case ServerQueryToggleSourceLocation:
+        srcloc.enabled = ((payload.extra) ? true : false);
         break;
 #ifdef TRACY_FIBERS
     case ServerQueryFiberName:

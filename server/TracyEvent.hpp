@@ -210,6 +210,7 @@ enum { SourceLocationSize = sizeof( SourceLocation ) };
 struct AnnouncedSourceLocation : SourceLocation
 {
     StringRef module_name;
+    uint64_t ptr;
     bool enabled;
 };
 

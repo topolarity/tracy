@@ -296,10 +296,10 @@ private:
         unordered_flat_map<uint64_t, const char*> threadNames;
         unordered_flat_map<uint64_t, std::pair<const char*, const char*>> externalNames;
 
-        // This is a map from uint64_t -> SourceLocation
         unordered_flat_map<uint64_t, SourceLocation> sourceLocation;
-        unordered_flat_map<uint64_t, AnnouncedSourceLocation> announcedSourceLocation;
-        //Vector<SourceLocation> togglableSourceLocation;
+
+        // Module -> Files -> SourceLocation
+        unordered_flat_map<uint32_t, unordered_flat_map<uint32_t, Vector<AnnouncedSourceLocation>>> declaredSourceLocation;
         Vector<short_ptr<SourceLocation>> sourceLocationPayload;
         unordered_flat_map<const SourceLocation*, int16_t, SourceLocationHasher, SourceLocationComparator> sourceLocationPayloadMap;
         // This is a collection of uint64_t
@@ -528,8 +528,7 @@ public:
     const FrameImage* GetFrameImage( const FrameData& fd, size_t idx ) const;
     std::pair<int, int> GetFrameRange( const FrameData& fd, int64_t from, int64_t to );
 
-    // TODO: constness?
-    unordered_flat_map<uint64_t, AnnouncedSourceLocation>& GetAnnouncedSrcLocs() { return m_data.announcedSourceLocation; }
+    unordered_flat_map<uint32_t, unordered_flat_map<uint32_t, Vector<AnnouncedSourceLocation>>>& GetAnnouncedSrcLocs() { return m_data.declaredSourceLocation; }
     const unordered_flat_map<uint32_t, LockMap*>& GetLockMap() const { return m_data.lockMap; }
     const Vector<short_ptr<MessageData>>& GetMessages() const { return m_data.messages; }
     const Vector<GpuCtxData*>& GetGpuData() const { return m_data.gpuData; }
@@ -671,6 +670,8 @@ public:
     void DoPostponedWorkAll();
 
     void CacheSourceFiles();
+
+    void QueryToggleSourceLocation( uint64_t ptr, bool enabled );
 
 private:
     void Network();

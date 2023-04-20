@@ -3152,6 +3152,11 @@ void Worker::QueryTerminate()
     m_sock.Send( &query, ServerQueryPacketSize );
 }
 
+void Worker::QueryToggleSourceLocation( uint64_t ptr, bool enabled )
+{
+    Query( ServerQueryToggleSourceLocation, ptr, (uint32_t) enabled ? 1 : 0 );
+}
+
 void Worker::QuerySourceFile( const char* fn, const char* image )
 {
     if( image ) QueryDataTransfer( image, strlen( image ) + 1 );
@@ -3703,14 +3708,37 @@ void Worker::AddAnnouncedSourceLocationPayload( uint64_t ptr, const char* data, 
             ( ( color & 0x0000FF00 )       ) |
             ( ( color & 0x000000FF ) << 16 );
 
-    AnnouncedSourceLocation srcloc {{{ nsz == 0 ? StringRef() : StringRef( StringRef::Idx, StoreString( end, nsz ).idx ), StringRef( StringRef::Idx, func.idx ), StringRef( StringRef::Idx, source.idx ), line, color }, 0}, StringRef( StringRef::Idx, module_name.idx ), false };
+    AnnouncedSourceLocation srcloc {{{ nsz == 0 ? StringRef() : StringRef( StringRef::Idx, StoreString( end, nsz ).idx ), StringRef( StringRef::Idx, func.idx ), StringRef( StringRef::Idx, source.idx ), line, color }, 0}, StringRef( StringRef::Idx, module_name.idx ), 0, false };
     m_pendingAnnouncedSourceLocationPayload = -1;
 
-    /**
-     *   We now have the registrations...
-     *   All that's left is to collect them and send a quick message back!
-     **/
-    m_data.announcedSourceLocation.emplace(client_ptr, srcloc );
+    // Module -> File
+    auto file_list_it = m_data.declaredSourceLocation.find( module_name.idx );
+    if( file_list_it == m_data.declaredSourceLocation.end() )
+        file_list_it = m_data.declaredSourceLocation.emplace(
+                module_name.idx,
+                unordered_flat_map<uint32_t, Vector<AnnouncedSourceLocation>>()).first;
+
+    // File -> Vector<SrcLoc>
+    auto srcloc_it = file_list_it->second.find( source.idx );
+    if ( srcloc_it == file_list_it->second.end() ) {
+        file_list_it->second.emplace(
+                source.idx,
+                Vector<AnnouncedSourceLocation>(srcloc));
+    } else {
+        srcloc_it->second.push_back(srcloc);
+    }
+
+    //if (file_list_it == m_data.declaredModuleFiles.end()) {
+        //file_list_it = m_pendingFileStrings.emplace( ref, Vector<uint32_t>() );
+
+        ////file_list_it.second.push_back( file_name.idx );
+
+
+        ////it.
+    //}
+    //assert( it != m_data.sourceLocation.end() );
+    //m_data.declaredModuleFiles
+    //m_data.announcedSourceLocation.emplace(client_ptr, srcloc );
 
     //auto it = m_data.sourceLocationPayloadMap.find( &srcloc );
     //if( it == m_data.sourceLocationPayloadMap.end() )
