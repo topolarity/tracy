@@ -172,6 +172,7 @@
     <ClCompile Include="..\..\..\server\TracyView_TraceInfo.cpp" />
     <ClCompile Include="..\..\..\server\TracyView_Utility.cpp" />
     <ClCompile Include="..\..\..\server\TracyView_ZoneInfo.cpp" />
+    <ClCompile Include="..\..\..\server\TracyView_ZoneToggle.cpp" />
     <ClCompile Include="..\..\..\server\TracyView_ZoneTimeline.cpp" />
     <ClCompile Include="..\..\..\server\TracyWeb.cpp" />
     <ClCompile Include="..\..\..\server\TracyWorker.cpp" />

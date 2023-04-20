@@ -207,6 +207,11 @@ struct SourceLocation : public SourceLocationBase
 
 enum { SourceLocationSize = sizeof( SourceLocation ) };
 
+struct AnnouncedSourceLocation : SourceLocation
+{
+    StringRef module_name;
+    bool enabled;
+};
 
 struct ZoneEvent
 {

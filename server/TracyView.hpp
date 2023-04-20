@@ -267,6 +267,7 @@ private:
     void DrawParentsFrameTreeLevel( const unordered_flat_map<uint64_t, CallstackFrameTree>& tree, int& idx );
 
     void DrawInfoWindow();
+    void DrawZoneToggle();
     void DrawZoneInfoWindow();
     void DrawGpuInfoWindow();
 
@@ -464,6 +465,7 @@ private:
 
     bool m_showOptions = false;
     bool m_showMessages = false;
+    bool m_showZoneToggle = false;
     bool m_showStatistics = false;
     bool m_showInfo = false;
     bool m_showPlayback = false;
@@ -501,6 +503,7 @@ private:
     BuzzAnim<int> m_callstackTreeBuzzAnim;
     BuzzAnim<const void*> m_zoneinfoBuzzAnim;
     BuzzAnim<int> m_findZoneBuzzAnim;
+    BuzzAnim<int> m_zoneToggleBuzzAnim;
     BuzzAnim<int16_t> m_optionsLockBuzzAnim;
     BuzzAnim<uint32_t> m_lockInfoAnim;
     BuzzAnim<uint32_t> m_statBuzzAnim;

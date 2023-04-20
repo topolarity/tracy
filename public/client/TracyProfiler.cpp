@@ -3064,20 +3064,10 @@ void Profiler::SendSourceLocation( uint64_t ptr )
     MemWrite( &item.srcloc.name, (uint64_t)srcloc->name );
     MemWrite( &item.srcloc.file, (uint64_t)srcloc->file );
     MemWrite( &item.srcloc.function, (uint64_t)srcloc->function );
+    MemWrite( &item.srcloc.line, srcloc->line );
     MemWrite( &item.srcloc.b, uint8_t( ( srcloc->color       ) & 0xFF ) );
     MemWrite( &item.srcloc.g, uint8_t( ( srcloc->color >> 8  ) & 0xFF ) );
     MemWrite( &item.srcloc.r, uint8_t( ( srcloc->color >> 16 ) & 0xFF ) );
-    if ( srcloc->togglable )
-    {
-        MemWrite( &item.srcloc.line, srcloc->line + INT32_MAX );
-#ifdef TRACY_ON_DEMAND
-        DeferItem( item );
-#endif
-    }
-    else
-    {
-        MemWrite( &item.srcloc.line, srcloc->line );
-    }
     AppendData( &item, QueueDataSize[(int)QueueType::SourceLocation] );
 }
 
@@ -3988,9 +3978,9 @@ int64_t Profiler::GetTimeQpc()
 extern "C" {
 #endif
 
-TRACY_API void ___tracy_send_srcloc( const struct ___tracy_source_location_data* srcloc )
+TRACY_API void ___tracy_send_srcloc( const struct ___tracy_announced_source_location_data* srcloc )
 {
-    uint64_t serialized_data = tracy::Profiler::AnnounceSourceLocation((tracy::SourceLocationData *)srcloc);
+    uint64_t serialized_data = tracy::Profiler::AnnounceSourceLocation((tracy::AnnouncedSourceLocationData *)srcloc);
     TracyQueuePrepareC( tracy::QueueType::AnnounceSrcLoc );
     tracy::MemWrite( &item->zoneBegin.time, tracy::Profiler::GetTime() );
     tracy::MemWrite( &item->zoneBegin.srcloc, serialized_data );

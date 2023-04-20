@@ -240,6 +240,9 @@
     <ClCompile Include="..\..\..\server\TracyView_ZoneInfo.cpp">
       <Filter>server</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\server\TracyView_ZoneToggle.cpp">
+      <Filter>server</Filter>
+    </ClCompile>
     <ClCompile Include="..\..\..\server\TracyView_ContextSwitch.cpp">
       <Filter>server</Filter>
     </ClCompile>

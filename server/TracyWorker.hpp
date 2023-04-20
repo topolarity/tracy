@@ -298,6 +298,7 @@ private:
 
         // This is a map from uint64_t -> SourceLocation
         unordered_flat_map<uint64_t, SourceLocation> sourceLocation;
+        unordered_flat_map<uint64_t, AnnouncedSourceLocation> announcedSourceLocation;
         //Vector<SourceLocation> togglableSourceLocation;
         Vector<short_ptr<SourceLocation>> sourceLocationPayload;
         unordered_flat_map<const SourceLocation*, int16_t, SourceLocationHasher, SourceLocationComparator> sourceLocationPayloadMap;
@@ -527,6 +528,8 @@ public:
     const FrameImage* GetFrameImage( const FrameData& fd, size_t idx ) const;
     std::pair<int, int> GetFrameRange( const FrameData& fd, int64_t from, int64_t to );
 
+    // TODO: constness?
+    unordered_flat_map<uint64_t, AnnouncedSourceLocation>& GetAnnouncedSrcLocs() { return m_data.announcedSourceLocation; }
     const unordered_flat_map<uint32_t, LockMap*>& GetLockMap() const { return m_data.lockMap; }
     const Vector<short_ptr<MessageData>>& GetMessages() const { return m_data.messages; }
     const Vector<GpuCtxData*>& GetGpuData() const { return m_data.gpuData; }

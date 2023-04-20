@@ -453,6 +453,8 @@ static void DrawContents()
     }
     if( activeFrames == 0 )
     {
+        ImGuiContext& g = *GImGui;
+        g.Time += g.IO.DeltaTime;
         std::this_thread::sleep_for( std::chrono::milliseconds( 16 ) );
         return;
     }

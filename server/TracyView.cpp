@@ -801,6 +801,7 @@ bool View::DrawImpl()
     if( ImGui::Button( ICON_FA_SCREWDRIVER_WRENCH ) ) ImGui::OpenPopup( "ToolsPopup" );
     if( ImGui::BeginPopup( "ToolsPopup" ) )
     {
+        ToggleButton( ICON_FA_GEAR " Zone Toggle", m_showZoneToggle );
         const auto ficnt = m_worker.GetFrameImageCount();
         if( ButtonDisablable( ICON_FA_PLAY " Playback", ficnt == 0 ) )
         {
@@ -996,6 +997,7 @@ bool View::DrawImpl()
 
     if( m_showOptions ) DrawOptions();
     if( m_showMessages ) DrawMessages();
+    if( m_showZoneToggle ) DrawZoneToggle();
     if( m_findZone.show ) DrawFindZone();
     if( m_showStatistics ) DrawStatistics();
     if( m_memInfo.show ) DrawMemory();

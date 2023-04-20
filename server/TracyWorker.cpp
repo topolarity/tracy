@@ -3671,9 +3671,6 @@ void Worker::AddSourceLocation( const QueueSourceLocation& srcloc )
 
 void Worker::AddAnnouncedSourceLocationPayload( uint64_t ptr, const char* data, size_t sz )
 {
-    /**
-     * We could use source location payload instead...
-     **/
     const auto start = data;
 
     assert( m_pendingAnnouncedSourceLocationPayload == 0 );
@@ -3695,18 +3692,26 @@ void Worker::AddAnnouncedSourceLocationPayload( uint64_t ptr, const char* data, 
     const auto source = StoreString( data, end - data );
     end++;
 
+    data = end;
+    while( *end ) end++;
+    const auto module_name = StoreString( data, end - data );
+    end++;
+
     const auto nsz = sz - ( end - start );
 
     color = ( ( color & 0x00FF0000 ) >> 16 ) |
             ( ( color & 0x0000FF00 )       ) |
             ( ( color & 0x000000FF ) << 16 );
 
-    SourceLocation srcloc {{ nsz == 0 ? StringRef() : StringRef( StringRef::Idx, StoreString( end, nsz ).idx ), StringRef( StringRef::Idx, func.idx ), StringRef( StringRef::Idx, source.idx ), line, color }};
-    fprintf(stderr, "registered srcloc for %s:%d\n", GetString(srcloc.file), srcloc.line);
+    AnnouncedSourceLocation srcloc {{{ nsz == 0 ? StringRef() : StringRef( StringRef::Idx, StoreString( end, nsz ).idx ), StringRef( StringRef::Idx, func.idx ), StringRef( StringRef::Idx, source.idx ), line, color }, 0}, StringRef( StringRef::Idx, module_name.idx ), false };
     m_pendingAnnouncedSourceLocationPayload = -1;
+
     /**
-     * TODO: Actually register into map
+     *   We now have the registrations...
+     *   All that's left is to collect them and send a quick message back!
      **/
+    m_data.announcedSourceLocation.emplace(client_ptr, srcloc );
+
     //auto it = m_data.sourceLocationPayloadMap.find( &srcloc );
     //if( it == m_data.sourceLocationPayloadMap.end() )
     //{
