@@ -1827,6 +1827,10 @@ void Profiler::Worker()
                 size = MemRead<uint16_t>( &item.gpuContextNameFat.size );
                 SendSingleString( (const char*)ptr, size );
                 break;
+            case QueueType::AnnounceSrcLoc:
+                ptr = MemRead<uint64_t>( &item.zoneBegin.srcloc );
+                SendAnnouncedSourceLocationPayload( ptr );
+                break;
             default:
                 break;
             }
@@ -2125,9 +2129,11 @@ static void FreeAssociatedMemory( const QueueItem& item )
         ptr = MemRead<uint64_t>( &item.messageFat.text );
         tracy_free( (void*)ptr );
         break;
-    case QueueType::AnnounceSrcLoc:
     case QueueType::ZoneBeginAllocSrcLoc:
     case QueueType::ZoneBeginAllocSrcLocCallstack:
+#ifndef TRACY_ON_DEMAND
+    case QueueType::AnnounceSrcLoc:
+#endif
         ptr = MemRead<uint64_t>( &item.zoneBegin.srcloc );
         tracy_free( (void*)ptr );
         break;
@@ -2201,6 +2207,7 @@ static void FreeAssociatedMemory( const QueueItem& item )
 #ifdef TRACY_ON_DEMAND
     case QueueType::MessageAppInfo:
     case QueueType::GpuContextName:
+    case QueueType::AnnounceSrcLoc:
         // Don't free memory associated with deferred messages.
         break;
 #endif
@@ -2316,7 +2323,9 @@ Profiler::DequeueStatus Profiler::Dequeue( moodycamel::ConsumerToken& token )
                         MemWrite( &item->zoneBegin.time, dt );
                         ptr = MemRead<uint64_t>( &item->zoneBegin.srcloc );
                         SendAnnouncedSourceLocationPayload( ptr );
+#ifndef TRACY_ON_DEMAND
                         tracy_free_fast( (void*)ptr );
+#endif
                         break;
                     }
                     case QueueType::ZoneBeginAllocSrcLoc:
@@ -3463,6 +3472,7 @@ bool Profiler::HandleServerQuery()
         AckServerQuery();
         break;
     case ServerQueryToggleSourceLocation:
+        fprintf(stderr, "Got back ptr %p\n", ptr);
         srcloc.enabled = ((payload.extra) ? true : false);
         break;
 #ifdef TRACY_FIBERS
@@ -3989,6 +3999,11 @@ TRACY_API void ___tracy_send_srcloc( const struct ___tracy_announced_source_loca
     TracyQueuePrepareC( tracy::QueueType::AnnounceSrcLoc );
     tracy::MemWrite( &item->zoneBegin.time, tracy::Profiler::GetTime() );
     tracy::MemWrite( &item->zoneBegin.srcloc, serialized_data );
+
+#ifdef TRACY_ON_DEMAND
+    tracy::GetProfiler().DeferItem( *item );
+#endif
+
     TracyQueueCommitC( zoneBeginThread );
 }
 

@@ -3708,7 +3708,7 @@ void Worker::AddAnnouncedSourceLocationPayload( uint64_t ptr, const char* data, 
             ( ( color & 0x0000FF00 )       ) |
             ( ( color & 0x000000FF ) << 16 );
 
-    AnnouncedSourceLocation srcloc {{{ nsz == 0 ? StringRef() : StringRef( StringRef::Idx, StoreString( end, nsz ).idx ), StringRef( StringRef::Idx, func.idx ), StringRef( StringRef::Idx, source.idx ), line, color }, 0}, StringRef( StringRef::Idx, module_name.idx ), 0, false };
+    AnnouncedSourceLocation srcloc {{{ nsz == 0 ? StringRef() : StringRef( StringRef::Idx, StoreString( end, nsz ).idx ), StringRef( StringRef::Idx, func.idx ), StringRef( StringRef::Idx, source.idx ), line, color }, 0}, StringRef( StringRef::Idx, module_name.idx ), client_ptr, false };
     m_pendingAnnouncedSourceLocationPayload = -1;
 
     // Module -> File
