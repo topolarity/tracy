@@ -159,6 +159,7 @@ struct LuaZoneState
 
 typedef void(*ParameterCallback)( void* data, uint32_t idx, int32_t val );
 typedef char*(*SourceContentsCallback)( void* data, const char* filename, size_t& size );
+typedef void(*ZoneToggleCallback)( void* data, void* srcloc, bool enable );
 
 class Profiler
 {
@@ -628,6 +629,13 @@ public:
 #endif
     }
 
+    static tracy_force_inline void ZoneToggleRegister( ZoneToggleCallback cb, void* data )
+    {
+        auto& profiler = GetProfiler();
+        profiler.m_zoneToggleCallback = cb;
+        profiler.m_zoneToggleCallbackData = data;
+    }
+
     static tracy_force_inline void ParameterRegister( ParameterCallback cb, void* data )
     {
         auto& profiler = GetProfiler();
@@ -993,6 +1001,8 @@ private:
     void* m_paramCallbackData;
     SourceContentsCallback m_sourceCallback;
     void* m_sourceCallbackData;
+    ZoneToggleCallback m_zoneToggleCallback;
+    void* m_zoneToggleCallbackData;
 
     char* m_queryImage;
     char* m_queryData;

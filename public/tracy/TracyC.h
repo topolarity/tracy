@@ -192,6 +192,8 @@ TRACY_API void ___tracy_shutdown_profiler(void);
 TRACY_API uint64_t ___tracy_alloc_srcloc( uint32_t line, const char* source, size_t sourceSz, const char* function, size_t functionSz );
 TRACY_API uint64_t ___tracy_alloc_srcloc_name( uint32_t line, const char* source, size_t sourceSz, const char* function, size_t functionSz, const char* name, size_t nameSz );
 
+typedef void (*___tracy_zone_toggle_callback)( void *data, ___tracy_announced_source_location_data *srcloc, bool enabled );
+TRACY_API void ___tracy_zone_toggle_register(___tracy_zone_toggle_callback cb, void *data);
 TRACY_API void ___tracy_send_srcloc( const struct ___tracy_announced_source_location_data* srcloc );
 TRACY_API TracyCZoneCtx ___tracy_emit_zone_begin( const struct ___tracy_source_location_data* srcloc, int active );
 TRACY_API TracyCZoneCtx ___tracy_emit_zone_begin_callstack( const struct ___tracy_source_location_data* srcloc, int depth, int active );

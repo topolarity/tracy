@@ -1350,6 +1350,7 @@ Profiler::Profiler()
 #endif
     , m_paramCallback( nullptr )
     , m_sourceCallback( nullptr )
+    , m_zoneToggleCallback( nullptr )
     , m_queryImage( nullptr )
     , m_queryData( nullptr )
     , m_crashHandlerInstalled( false )
@@ -3472,8 +3473,13 @@ bool Profiler::HandleServerQuery()
         AckServerQuery();
         break;
     case ServerQueryToggleSourceLocation:
-        fprintf(stderr, "Got back ptr %p\n", ptr);
-        srcloc.enabled = ((payload.extra) ? true : false);
+        // TODO: Use an index instead of a pointer
+        //       so that we don't modify arbitrary memory
+        if ( m_zoneToggleCallback ) {
+            m_zoneToggleCallback( m_zoneToggleCallbackData, &srcloc, payload.extra );
+        } else {
+            srcloc.enabled = ((payload.extra) ? true : false);
+        }
         break;
 #ifdef TRACY_FIBERS
     case ServerQueryFiberName:
@@ -4005,6 +4011,11 @@ TRACY_API void ___tracy_send_srcloc( const struct ___tracy_announced_source_loca
 #endif
 
     TracyQueueCommitC( zoneBeginThread );
+}
+
+TRACY_API void ___tracy_zone_toggle_register( ___tracy_zone_toggle_callback cb, void *data )
+{
+    tracy::Profiler::ZoneToggleRegister((tracy::ZoneToggleCallback) cb, data);
 }
 
 TRACY_API TracyCZoneCtx ___tracy_emit_zone_begin( const struct ___tracy_source_location_data* srcloc, int active )
