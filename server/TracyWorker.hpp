@@ -671,7 +671,7 @@ public:
 
     void CacheSourceFiles();
 
-    void QueryToggleSourceLocation( uint64_t ptr, bool enabled );
+    void QueryToggleSourceLocation( uint64_t ptr, uint8_t enabled );
 
 private:
     void Network();

@@ -103,7 +103,7 @@ struct AnnouncedSourceLocationData
 {
     struct SourceLocationData srcloc;
     const char* module_name;
-    bool enabled;
+    uint64_t enabled;
 };
 
 #ifdef TRACY_ON_DEMAND
@@ -159,7 +159,7 @@ struct LuaZoneState
 
 typedef void(*ParameterCallback)( void* data, uint32_t idx, int32_t val );
 typedef char*(*SourceContentsCallback)( void* data, const char* filename, size_t& size );
-typedef void(*ZoneToggleCallback)( void* data, void* srcloc, bool enable );
+typedef void(*ZoneToggleCallback)( void* data, void* srcloc, uint64_t *enable );
 
 class Profiler
 {

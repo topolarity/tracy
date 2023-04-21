@@ -211,7 +211,7 @@ struct AnnouncedSourceLocation : SourceLocation
 {
     StringRef module_name;
     uint64_t ptr;
-    bool enabled;
+    uint8_t enabled;
 };
 
 struct ZoneEvent

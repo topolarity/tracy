@@ -3477,9 +3477,10 @@ bool Profiler::HandleServerQuery()
         // TODO: Use an index instead of a pointer
         //       so that we don't modify arbitrary memory
         if ( m_zoneToggleCallback ) {
-            m_zoneToggleCallback( m_zoneToggleCallbackData, &srcloc, payload.extra );
+            uint64_t extra = payload.extra;
+            m_zoneToggleCallback( m_zoneToggleCallbackData, &srcloc, &extra );
         } else {
-            srcloc.enabled = ((payload.extra) ? true : false);
+            srcloc.enabled = ((payload.extra == 1) ? true : false);
         }
         break;
 #ifdef TRACY_FIBERS

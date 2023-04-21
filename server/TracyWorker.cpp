@@ -3152,9 +3152,9 @@ void Worker::QueryTerminate()
     m_sock.Send( &query, ServerQueryPacketSize );
 }
 
-void Worker::QueryToggleSourceLocation( uint64_t ptr, bool enabled )
+void Worker::QueryToggleSourceLocation( uint64_t ptr, uint8_t enabled )
 {
-    Query( ServerQueryToggleSourceLocation, ptr, (uint32_t) enabled ? 1 : 0 );
+    Query( ServerQueryToggleSourceLocation, ptr, (uint32_t) enabled );
 }
 
 void Worker::QuerySourceFile( const char* fn, const char* image )
@@ -3708,7 +3708,7 @@ void Worker::AddAnnouncedSourceLocationPayload( uint64_t ptr, const char* data, 
             ( ( color & 0x0000FF00 )       ) |
             ( ( color & 0x000000FF ) << 16 );
 
-    AnnouncedSourceLocation srcloc {{{ nsz == 0 ? StringRef() : StringRef( StringRef::Idx, StoreString( end, nsz ).idx ), StringRef( StringRef::Idx, func.idx ), StringRef( StringRef::Idx, source.idx ), line, color }, 0}, StringRef( StringRef::Idx, module_name.idx ), client_ptr, false };
+    AnnouncedSourceLocation srcloc {{{ nsz == 0 ? StringRef() : StringRef( StringRef::Idx, StoreString( end, nsz ).idx ), StringRef( StringRef::Idx, func.idx ), StringRef( StringRef::Idx, source.idx ), line, color }, 0}, StringRef( StringRef::Idx, module_name.idx ), client_ptr, 1 };
     m_pendingAnnouncedSourceLocationPayload = -1;
 
     // Module -> File
@@ -3726,6 +3726,11 @@ void Worker::AddAnnouncedSourceLocationPayload( uint64_t ptr, const char* data, 
                 Vector<AnnouncedSourceLocation>(srcloc));
     } else {
         srcloc_it->second.push_back(srcloc);
+    }
+
+    if( m_checkedFileStrings.find( srcloc.file ) == m_checkedFileStrings.end() )
+    {
+        CacheSource( srcloc.file );
     }
 
     //if (file_list_it == m_data.declaredModuleFiles.end()) {
