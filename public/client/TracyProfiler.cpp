@@ -1551,16 +1551,17 @@ void Profiler::Worker()
     rpmalloc_thread_initialize();
 #endif
 
-    m_exectime = 0;
-    const auto execname = GetProcessExecutablePath();
-    if( execname )
-    {
-        struct stat st;
-        if( stat( execname, &st ) == 0 )
-        {
-            m_exectime = (uint64_t)st.st_mtime;
-        }
-    }
+    m_exectime = time(NULL);
+    //m_exectime = 0;
+    //const auto execname = GetProcessExecutablePath();
+    //if( execname )
+    //{
+        //struct stat st;
+        //if( stat( execname, &st ) == 0 )
+        //{
+            //m_exectime = (uint64_t)st.st_mtime;
+        //}
+    //}
 
     const auto procname = GetProcessName();
     const auto pnsz = std::min<size_t>( strlen( procname ), WelcomeMessageProgramNameSize - 1 );
